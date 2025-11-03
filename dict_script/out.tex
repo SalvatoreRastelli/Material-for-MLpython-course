@@ -1,0 +1,141 @@
+\newglossaryentry{pseudoinverse}
+{name={pseudoinverse},
+	description={randomexperiment, \gls{randomexperiment}. The \index{pseudoinverse}Moore–Penrose pseudoinverse $\mA^{+}$ 
+		of a \gls{matrix} $\featuremtx \in \mathbb{R}^{\samplesize \times \nrfeatures}$ 
+		generalizes the notion of an \gls{inverse} \cite{GolubVanLoanBook}. 
+		The pseudoinverse arises naturally in \gls{ridgeregression} for a 
+		\gls{dataset} with \gls{featuremtx} $\featuremtx$ and \gls{labelvec} 
+		$\labelvec$ \cite[Ch.\ 3]{hastie01statisticallearning}. 
+		The \glspl{modelparam} learned by \gls{ridgeregression} 
+		are given by
+		\[
+		\widehat{\weights}^{(\regparam)}  = \big(\featuremtx^{T} \featuremtx + \regparam \mI \big)^{-1} \featuremtx^{T} \vy, \quad \regparam > 0.
+		\]
+		We can then define the pseudoinverse $\featuremtx^{+} \in \mathbb{R}^{\nrfeatures \times \samplesize}$ via 
+		the limit \cite[Ch. 3]{benisrael2003generalized}
+		\[
+		\lim_{\regparam \to 0^+} \widehat{\weights}^{(\regparam)} = \featuremtx^+ \vy.
+		\]
+		\\
+		See also: \gls{matrix}, \gls{inverse}, \gls{ridgeregression}. },
+	first={pseudoinverse},
+	text={pseudoinverse}
+}
+
+\newglossaryentry{randomexperiment}
+{name={random experiment},
+	description={A random experiment\index{random experiment} is a physical (or abstract) process 
+		that produces an outcome $\outcome$ from a set $\samplespace$ of possibilities. 
+		This set of all possible outcomes is referred to as the \gls{samplespace} of 
+		the experiment. The key characteristic of a random experiment is that its 
+		outcome is unpredictable (or uncertain). Any measurement or observation 
+		of the outcome is a \gls{rv}, i.e., a \gls{function} of the outcome $\outcome \in \samplespace$. 
+		\Gls{probability} theory uses a \gls{probspace} as a mathematical structure for the study of 
+		random experiments. A key conceptual property of a random experiment is that it can 
+		be repeated under identical conditions. Strictly speaking, repeating a random experiment 
+		a given number of $\samplesize$ times defines a new random experiment. The outcomes 
+		of this new experiment are length-$\samplesize$ sequences of outcomes 
+		from the original experiment (see Fig. \ref{fig_randomexperiment_dict}). While the outcome of a single experiment is 
+		uncertain, the long-run behaviour of the outcomes of repeated experiments 
+		tends to become increasingly predictable. This informal claim can be made 
+		precise via fundamental results of \gls{probability} theory, such as the \gls{lln} 
+		and the \gls{clt}.
+		\begin{figure}[H]
+			\begin{center}
+				\begin{tikzpicture}[>=Stealth, node distance=1.5cm and 2cm, every node/.style={font=\small}]
+					\node (experiment) [draw, rectangle, rounded corners, minimum width=2.6cm, align=center] {random\\experiment};
+					\node (omega) [right=of experiment] {$\outcome \in \samplespace$};
+					\coordinate (rightpad) at ($(omega.east) + (0.2,0)$);
+					\draw[->] (experiment) -- (omega);
+					\node (sequence) [below=of experiment, yshift=-0.5cm] {$(\outcome^{(1)}, \,\outcome^{(2)}, \,\dots, \,\outcome^{(\samplesize)})$};
+					\node (sequence1) [below=of sequence, yshift=-0.5cm] {$(\datapoint^{(1)}, \,\datapoint^{(2)}, \,\dots, \,\datapoint^{(\samplesize)})$};
+					\draw[->, thick] (experiment.south) -- node[midway, right, xshift=3pt] {repeat $\samplesize$ times} (sequence.north);
+					\draw[->, thick] (sequence.south) -- node[midway, right, xshift=3pt] {\glspl{rv}} (sequence1.north);
+					% Anchor node ~60% along the repeat arrow
+					\path (experiment.south) -- (sequence.north) coordinate[pos=0.6] (repeatpoint);
+					% Dotted rounded box enclosing experiment and part of repeat arrow
+					\node[draw=black, rounded corners, dotted, fit={(experiment) (repeatpoint) (rightpad)}, inner sep=8pt, label=above:{new random experiment with $\samplespace' = \samplespace \times \ldots \times \samplespace$}] {};
+				\end{tikzpicture}
+			\end{center}
+			\caption{A random experiment produces an outcome $\outcome \in \samplespace$ from a set 
+				of possibilities (i.e., a \gls{samplespace}) 
+				$\samplespace$. Repeating the experiment $\samplesize$ times yields another random 
+				experiment, whose outcomes are sequences 
+				$(\outcome^{(1)}, \,\outcome^{(2)}, \,\dots, \,\outcome^{(\samplesize)}) \in \samplespace\times\ldots\times \samplespace$. 
+				One example of a random experiment arising in many \gls{ml} applications is the gathering 
+				of a \gls{trainset} $\datapoint^{(1)},\,\ldots,\,\datapoint^{(\samplesize)}$. \label{fig_randomexperiment_dict}}
+		\end{figure} 
+		Examples for random experiments arising in \gls{ml} applications include the following: 
+		\begin{itemize} 
+			\item \Gls{data} collection: The \glspl{datapoint} collected in \gls{erm}-based methods 
+			can be interpreted as \glspl{rv}, i.e., as \glspl{function} of the outcome $\outcome \in \samplespace$ 
+			of a random experiment. 
+			\item \Gls{stochGD} uses a random experiment at each iteration to select a subset of 
+			the \gls{trainset}. 
+			\item \Gls{privprot} methods use random experiments to perturb  
+			the outputs of an \gls{ml} method to ensure \gls{diffpriv}. 
+		\end{itemize} 
+		See also: \gls{samplespace}, \gls{rv}, \gls{probability}, \gls{probspace}.},
+	firstplural={random experiments},
+	plural={random experiments},
+	first={random experiment},
+	text={random experiment}
+}
+
+
+\newglossaryentry{dimension}
+{name={dimension},
+	description={
+		The \index{dimension}dimension $\dim \mathcal{A}$ of a 
+		\gls{vectorspace} $\mathcal{A}$ is the cardinality of any 
+		\gls{basis} of $\mathcal{A}$ \cite{StrangLinAlg2016}. 
+		Strictly speaking, this definition applies only to finite-dimensional \glspl{vectorspace}, 
+		i.e., those that possess a finite \gls{basis}. 
+		\begin{figure}[H]
+			\begin{tikzpicture}[scale=1]
+				% Axes (optional; remove if you want it even more minimal)
+				%	\draw[->, thin, gray] (-0.2,0) -- (3.2,0) node[right] {$\vw^{(1)}$};
+				%	\draw[->, thin, gray] (0,-0.2) -- (0,3.2) node[above] {$\vw^{(1)}$};
+				\coordinate (O) at (0,0);
+				% Basis 1: standard (solid)
+				\draw[->, thick] (O) -- (1.8,0) node[below right] {$\ve^{(1)}$};
+				\draw[->, thick] (O) -- (0,1.6) node[above left] {$\ve^{(2)}$};
+				% Basis 2: rotated by ~45° (dashed)
+				\draw[->, thick, dashed, shift={(3.5,0.5)}] (0,0) -- (1.2,1.2) node[above right] {$\vu^{(1)}$};
+				\draw[->, thick, dashed, shift={(3.5,0.5)}] (0,0) -- (-1.2,1.2) node[above left] {$\vu^{(2)}$};
+				% Basis 3: non-orthogonal / skewed (dotted)
+				\draw[->, thick, dotted, shift={(-2.5,-2.5)}] (O) -- (2.0,0.6) node[above right] {$\vw^{(1)}$};
+				\draw[->, thick, dotted, shift={(-2.5,-2.5)}] (O) -- (0.4,1.8) node[left] {$\vw^{(2)}$};
+				% Simple legend
+				% \node[anchor=west] at (1.6,-0.6) {\footnotesize \textbf{Bases:} solid = standard,\; 
+					% dashed = rotated,\; dotted = skewed};
+			\end{tikzpicture}
+			\caption{Three \glspl{basis}, $\big\{\ve^{(1)},\ve^{(2)} \big\}, \big\{\vu^{(1)},\vu^{(2)} \big\},
+				\big\{\vw^{(1)},\vw^{(2)} \big\}$, for the \gls{vectorspace} $\mathbb{R}^{2}$.} 
+		\end{figure}
+		For such spaces, 
+		all \glspl{basis} have the same cardinality, which is the dimension of the space 
+		\cite[Ch.~2]{Axler2025}.	
+		\\
+		See also: \gls{vectorspace}, \gls{basis}. 
+	}, 
+	text = {dimension}, 
+	type=math,
+	first = {dimension} 
+}
+
+
+\newglossaryentry{linearlyindep}
+{name={linearly independent},
+	description={A subset $\{\va^{(1)}, \,\ldots, \,\va^{(\nrfeatures)}\} \in \mathcal{V}$ 
+		of a \gls{vectorspace} is linearly independent\index{linearly independent} 
+		if there is no non-trivial linear combination of these \glspl{vector} that 
+		equals the zero \gls{vector} \cite{StrangLinAlg2016}. 
+		In other words, $$\sum_{\featureidx=1}^{\nrfeatures} \alpha_{\featureidx} \va^{(\featureidx)} = \mathbf{0}	
+		\quad \text{ implies } \quad \alpha_{1} = \alpha_{2} = \ldots = \alpha_{k} = 0.$$ \\ 
+		See also: \gls{vectorspace}, \gls{vector}, \gls{dimension}, \gls{basis}.
+	}, 
+	text = {linearly independent}, 
+	type=math,
+	first = {linearly independent} 
+}
