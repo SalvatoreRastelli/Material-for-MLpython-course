@@ -5,16 +5,28 @@ from pathlib import Path
 def inside_any(index, spans):
     return any(s <= index < e for s, e in spans)
 
-def extract_glossary_terms(tex_text):
-    """Extract glossary entries and their names."""
-    entries = re.findall(
-        r'\\newglossaryentry\{(.*?)\}\s*\{.*?name=\{(.*?)\}',
-        tex_text,
-        re.DOTALL
-    )
-    return {term.strip(): name.strip() for term, name in entries}
+def extract_glossary_entries(tex_text):
+    """Extract glossary entries with their names and plurals."""
+    # capture each full \newglossaryentry block
+    blocks = list(re.finditer(
+        r'\\newglossaryentry\{(.*?)\}\s*\{.*?\}(?=\s*\\newglossaryentry|$)',
+        tex_text, re.DOTALL
+    ))
+    entries = {}
+    for m in blocks:
+        key = m.group(1).strip()
+        block_text = tex_text[m.start():m.end()]
 
-import re
+        def get_field(field):
+            f = re.search(rf'{field}\s*=\s*\{{(.*?)\}}', block_text, re.DOTALL)
+            return f.group(1).strip() if f else None
+
+        name = get_field('name')
+        plural = get_field('plural')
+
+        entries[key] = {"name": name, "plural": plural}
+    return entries
+
 
 def replace_terms_with_gls(tex_text, glossary):
     """
@@ -31,42 +43,52 @@ def replace_terms_with_gls(tex_text, glossary):
     # 1) Find spans of every \newglossaryentry{key}{...} and record by key
     glossary_defs = {}   # key -> (start, end)
     for m in re.finditer(r'\\newglossaryentry\{(.*?)\}\s*\{.*?\}(?=\s*\\newglossaryentry|$)', tex_text, re.DOTALL):
-        print(m)
         key = m.group(1)
         glossary_defs[key] = (m.start(), m.end())
 
     # 2) Find spans of existing \gls{...} (never replace inside these)
-    gls_spans = [ (m.start(), m.end()) for m in re.finditer(r'\\gls\{.*?\}', tex_text) ]
+    gls_spans = [ (m.start(), m.end()) for m in re.finditer(r'\\gls(?:pl)?\{.*?\}', tex_text) ]
 
     # 3) Collect candidate replacements from the ORIGINAL text (not updated_text)
     #    This avoids index-shift problems when applying multiple replacements.
     replacements = []  # list of (start, end, replacement_text, name)
 
-    for term, name in glossary.items():
+    for term, fields in glossary.items():
+        name = fields.get("name")
+        plural = fields.get("plural")
+
         # compile pattern for whole-word, case-insensitive matching of the displayed name
         # re.escape(name) - Escapes any special regex characters inside `name`.
         # For example, if name = "C++", it becomes "C\+\+"
         # so '+' is treated literally, not as a regex operator.
-        pattern = re.compile(rf'\b{re.escape(name)}\b', re.IGNORECASE)
 
-        for m in pattern.finditer(tex_text):
-            start, end = m.start(), m.end()
+        variants = []
+        if name:
+            variants.append(("singular", name))
+        if plural and plural != name:
+            variants.append(("plural", plural))
 
-            # If inside any \gls{...}, skip
-            if inside_any(start, gls_spans):
-                continue
+        for kind, display in variants:
+            pattern = re.compile(rf'\b{re.escape(display)}\b', re.IGNORECASE)
 
-            # If inside this term's own glossary definition, skip
-            # Glossary keys (term) should match the key used in \newglossaryentry{<key>}
-            # Only protect if this key exists in glossary_defs
-            def_span = glossary_defs.get(term)
-            if def_span and def_span[0] <= start < def_span[1]:
-                # match is inside its own definition -> skip replacing
-                continue
+            for m in pattern.finditer(tex_text):
+                start, end = m.start(), m.end()
 
-            # Otherwise, this occurrence is OK to replace
-            replacement_text = f'\\gls{{{term}}}'
-            replacements.append((start, end, replacement_text, name))
+                # If inside any \gls{...}, skip
+                if inside_any(start, gls_spans):
+                    continue
+
+                # If inside this term's own glossary definition, skip
+                # Glossary keys (term) should match the key used in \newglossaryentry{<key>}
+                # Only protect if this key exists in glossary_defs
+                def_span = glossary_defs.get(term)
+                if def_span and def_span[0] <= start < def_span[1]:
+                    # match is inside its own definition -> skip replacing
+                    continue
+
+                # Otherwise, this occurrence is OK to replace
+                replacement_text = f'\\glspl{{{term}}}' if kind == "plural" else f'\\gls{{{term}}}'
+                replacements.append((start, end, replacement_text, display))
 
     # 4) Sort replacements by start index descending, apply them to updated_text
     #    Applying from right to left prevents earlier replacements from shifting later spans.
@@ -91,16 +113,21 @@ def replace_terms_with_gls(tex_text, glossary):
     changes.sort(key=lambda x: x[1])
     return updated_text, changes
 
+
+
 def main():
-    input_file = Path("test.tex")
-    output_file = Path("out.tex")
+    # Set your filenames here
+    glossary_file = Path("ADictML_Glossary_English.tex")
+    paper_file = Path("FedKMeansAJ.tex")  # <-- change this to your actual paper filename
+    output_file = paper_file  # write back to the paper's filename
 
-    tex_text = input_file.read_text(encoding="utf-8")
+    glossary_text = glossary_file.read_text(encoding="utf-8")
+    paper_text = paper_file.read_text(encoding="utf-8")
 
-    glossary = extract_glossary_terms(tex_text)
+    glossary = extract_glossary_entries(glossary_text)
     print(f"Found {len(glossary)} glossary terms.")
 
-    updated_text, changes = replace_terms_with_gls(tex_text, glossary)
+    updated_text, changes = replace_terms_with_gls(paper_text, glossary)
 
     print(f"Applied {len(changes)} replacements.")
     for name, pos in changes[:10]:  # show sample
@@ -108,6 +135,7 @@ def main():
 
     output_file.write_text(updated_text, encoding="utf-8")
     print(f"Updated file written to {output_file}")
+
 
 if __name__ == "__main__":
     main()
