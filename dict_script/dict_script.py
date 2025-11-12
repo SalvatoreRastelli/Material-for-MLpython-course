@@ -86,6 +86,14 @@ def replace_terms_with_gls(tex_text, glossary):
                     # match is inside its own definition -> skip replacing
                     continue
 
+                 # If immediately preceded by a backslash, skip (e.g., \term, \Matrix)
+                if start > 0 and tex_text[start - 1] == '\\':
+                    continue
+
+                # If immediately preceded by an opening brace, skip (e.g., {term})
+                if start > 0 and tex_text[start - 1] == '{':
+                    continue
+
                 # Otherwise, this occurrence is OK to replace
                 replacement_text = f'\\glspl{{{term}}}' if kind == "plural" else f'\\gls{{{term}}}'
                 replacements.append((start, end, replacement_text, display))
