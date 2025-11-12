@@ -47,7 +47,7 @@ def replace_terms_with_gls(tex_text, glossary):
         glossary_defs[key] = (m.start(), m.end())
 
     # 2) Find spans of existing \gls{...} (never replace inside these)
-    gls_spans = [ (m.start(), m.end()) for m in re.finditer(r'\\gls(?:pl)?\{.*?\}', tex_text) ]
+    gls_spans = [(m.start(), m.end())for m in re.finditer(r'\\[Gg]ls(?:pl)?\{.*?\}', tex_text)]
 
     # 3) Collect candidate replacements from the ORIGINAL text (not updated_text)
     #    This avoids index-shift problems when applying multiple replacements.
